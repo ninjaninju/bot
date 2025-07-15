@@ -1,9 +1,10 @@
 import { generatePayload } from './generatePayload.js';
 import { register } from './register.js';
-import { confirmPelniEmail } from './fetchPelniLink.js';
+import { getTempEmail, getVerificationCode, getVerificationLink } from './email.js';
 import readline from 'readline';
 import fs from 'fs';
 import path from 'path';
+import axios from 'axios';
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -26,35 +27,43 @@ rl.question('Masukkan referral code: ', (referral_code) => {
 
         for (let i = 1; i <= jumlah; i++) {
             console.log(`\n➡️  [${i}/${jumlah}] Memulai proses pendaftaran...\n`);
-            const payload = generatePayload(referral_code);
-            console.log(' Mencoba Mendaftar:');
-            console.log(`Nama     : ${payload.full_name}`);
-            console.log(`Email    : ${payload.email}`);
-            console.log(`Phone    : ${payload.phone_num}`);
-            console.log(`Password : ${payload.password}`);
-            console.log(`Identity : ${payload.identity_num}`);
-            console.log(`DOB      : ${payload.dob}`);
-            console.log(`Gender   : ${payload.gender}`);
+            const payload = await generatePayload(referral_code);
+         console.log(payload)
 
             try {
                 const result = await register(payload);
                 if (result.status) {
                     console.log('✅ Sukses Mendaftar');
-                    const email = 'glentillman94@daouse.com';
-                    await delay(10000);
-                    const success = await confirmPelniEmail(email);
+                    console.log("⏳ Menunggu kode verifikasi masuk ke inbox...");
+                    let code = null;
+                    let attempts = 0;
+                    const maxAttempts = 10;
 
-                    if (success) {
-                        console.log('🎉 Email berhasil dikonfirmasi!');
+                    while (!code && attempts < maxAttempts) {
+                        await delay(5000);
+                        attempts++;
+                        console.log(`🔍 Mengecek inbox (percobaan ke-${attempts})...`);
+                        code = await getVerificationLink(payload.email);
+                    }
 
-                        // Simpan data ke file
+                    if (code) {
+                        console.log(`✅ Link verifikasi ditemukan: ${code}`);
+                        try {
+                            const response = await axios.get(code);
+                            console.log('✅ Konfirmasi berhasil dengan status:', response.status);
+                        } catch (err) {
+                            console.log('❌ Gagal konfirmasi link:', err.message);
+                        }
                         const data = `Nama: ${payload.full_name}\nEmail: ${payload.email}\nPhone: ${payload.phone_num}\nPassword: ${payload.password}\nIdentity: ${payload.identity_num}\nDOB: ${payload.dob}\nGender: ${payload.gender}\n----------\n`;
                         fs.appendFileSync(outputFile, data, 'utf8');
                         console.log('📁 Data disimpan ke hasil_pendaftaran.txt');
                     } else {
-                        console.log('⚠️ Email belum bisa dikonfirmasi.');
+                        console.log("⚠️ Gagal mendapatkan kode verifikasi setelah beberapa kali percobaan.");
                     }
                 }
+
+
+
             } catch (err) {
                 console.error('❌ Error:', err.message);
             }

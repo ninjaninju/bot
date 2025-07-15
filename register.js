@@ -8,7 +8,7 @@ export async function register(payload) {
     'Content-Type': 'application/json',
     'Accept-Encoding': 'gzip',
     'Host': 'mobile.pelni.co.id',
-    'nonce': 'KPENrs5ugEfpINEeLxbyjzHrgYS67CQ6CWUXOI1CW6eJDnj7U+PaIvOUMZnvwZfo'
+    'nonce': 'dfuK2G0pMLIr8fpdIoI1/MaMnQCnkalY6OojZzwmcgwluMaD7Qq1ZHyEocT3k6iR'
   };
 
 
