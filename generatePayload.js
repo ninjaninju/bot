@@ -38,7 +38,7 @@ function generatePassword(length = 12) {
     .join('');
 }
 
-export function generatePayload() {
+export function generatePayload(referral_code = 'OJMVXDHZ') {
   const full_name = faker.person.fullName();
 
   // Buat email dengan domain @jkotypc.com
@@ -70,7 +70,7 @@ export function generatePayload() {
     dob: dobFormatted,
     gender,
     id_parent: null,
-    referral_code: 'OJMVXDHZ',
+    referral_code,
     country_code: 'ID',
     device_fingerprint:
       'google/redfin/redfin:11/RQ2A.210305.006/7119741:user/release-keys'
